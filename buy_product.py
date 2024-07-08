@@ -1,32 +1,30 @@
-# v 0.01
-class Customer:
-    def __init__(self, customer_id: int, first_name: str, last_name: str, phone_number: str):
-        self.customer_id = customer_id
-        self.first_name = first_name
-        self.last_name = last_name
-        self.phone_number = phone_number
+# v 0.02
+from pydantic import BaseModel, Field, PositiveInt, constr
+from typing import List  #хз надо нет, вроде с питона 3.9 уже не надо так делать
 
-    def __repr__(self) -> str:
-        return f"Customer(id={self.customer_id}, first_name={self.first_name}, last_name={self.last_name}, phone_number={self.phone_number})"
 
-class Product:
-    def __init__(self, product_id: int, pr_category_id: int, quantity: int, price: float):
-        self.product_id = product_id
-        self.pr_category_id = pr_category_id
-        self.quantity = quantity
-        self.price = price
+class Customer(BaseModel):
+    customer_id: PositiveInt
+    first_name: constr(min_length=1)
+    last_name: constr(min_length=1)
+    phone_number: constr(min_length=10, max_length=15)
 
-    def __repr__(self) -> str:
-        return f"Product(id={self.product_id}, pr_category_id={self.pr_category_id}, quantity={self.quantity}, price={self.price})"
 
-class Basket:
-    def __init__(self, cust_id: int, cust_fname: str, cust_lname: str):
-        self.cust_id = cust_id
-        self.cust_fname = cust_fname
-        self.cust_lname = cust_lname
-        self.items = []
+class Product(BaseModel):
+    product_id: PositiveInt
+    pr_category_id: PositiveInt
+    quantity: int
+    price: float
 
-    def add_to_basket(self, product_id: int, database: list):
+
+class Busket(BaseModel):
+    cust_id: PositiveInt
+    cust_fname: constr(min_length=1)
+    cust_lname: constr(min_length=1)
+    items: List[Product] = Field(default_factory=list)
+
+
+    def add_to_basket(self, product_id: int, database: List[Product]) -> bool:
         # Поиск продукта в базе данных по product_id
         product = next((p for p in database if p.product_id == product_id and p.quantity > 0), None)
 
@@ -34,16 +32,18 @@ class Basket:
             self.items.append(product)
             print(f"Товар {product.product_id} добавлен в корзину.")
             return True
+
         else:
             print("Товар не найден или отсутствует на складе.")
             return False
 
-    def complete_purchase(self, database: list):
+
+    def complete_purchase(self, database: List[Product]):
 
         if not self.items:
             print("Корзина пуста. Нечего покупать.")
             return
-        
+
         for item in self.items:
             database_item = next((p for p in database if p.product_id == item.product_id), None)
 
@@ -52,45 +52,52 @@ class Basket:
 
                 if database_item.quantity == 0:
                     database.remove(database_item)
-        
+
         self.items = []
         print("Покупка совершена успешно.")
-    
-    def __repr__(self) -> str:
-        return f"Basket(cust_id={self.cust_id}, cust_fname={self.cust_fname}, cust_lname={self.cust_lname}, items={self.items})"
 
 
 # Имитация базы данных продуктов
 database = [
-    Product(1, 100, 10, 5.99),
-    Product(2, 101, 5, 3.49),
-    Product(3, 102, 0, 4.99),  # Продукт закончился на складе
+    Product(product_id=1, pr_category_id=100, quantity=10, price=5.99),
+    Product(product_id=2, pr_category_id=101, quantity=5, price=3.49),
+    Product(product_id=3, pr_category_id=102, quantity=0, price=4.99),  # Продукт закончился на складе
 ]
 
 # Создание покупателя
-customer = Customer(1, "Ivan", "Ivanov", "1234567890")
+customer = Customer(
+    customer_id=1,
+    first_name="Ivan",
+    last_name="Ivanov",
+    phone_number="1234567890"
+)
 
 # Создание корзины
-basket = Basket(customer.customer_id, customer.first_name, customer.last_name)
+busket = Busket(
+    cust_id=customer.customer_id,
+    cust_fname=customer.first_name,
+    cust_lname=customer.last_name
+)
 
 # Покупатель хочет купить продукт с id 1 (например, колбаса)
-if basket.add_to_basket(1, database):
-    basket.complete_purchase(database)
+if busket.add_to_basket(1, database):
+    busket.complete_purchase(database)
 
 # Покупатель хочет купить продукт с id 3 (нет в наличии)
-basket.add_to_basket(3, database)
+busket.add_to_basket(3, database)
 
 # Покупатель хочет купить продукт с id 2 (например, хлеб)
-if basket.add_to_basket(2, database):
-    basket.complete_purchase(database)
+if busket.add_to_basket(2, database):
+    busket.complete_purchase(database)
 
 # Вывод текущего состояния базы данных
 print("Текущее состояние базы данных продуктов:")
-
 for product in database:
     print(product)
 
 #done:
 #Поиск продукта, удаление продукта, классы корзины, покупателя, продукта
+#Добавлен pydantic, basket -> busket
 #to do:
-#Связать функции с SQL, проверить работу на SQL, проработать исключения
+#Связать функции с SQL, проверить работу на SQL
+#Проверить корректность pydantic (input_json = ... , class.parse_raw(input_json) иль чо там)
