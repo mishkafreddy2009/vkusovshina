@@ -1,8 +1,10 @@
+from os import getenv
 from databases import Database
-from config import DATABASE_URL
 from sqlalchemy import (MetaData, Table, Column,
                          String, Integer, create_engine)
 
+
+DATABASE_URL = f"postgresql+asyncpg://postgres:{getenv('postgresql_pass')}@localhost/vkusovshina"
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()

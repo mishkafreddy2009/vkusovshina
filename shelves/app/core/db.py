@@ -1,11 +1,13 @@
-from config import DATABASE_URL_ASYNC
+from os import getenv
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 
-engine = AsyncEngine(create_engine(DATABASE_URL_ASYNC, echo=True, future=True))
+DATABASE_URL = f"postgresql+asyncpg://postgres:{getenv('postgresql_pass')}@localhost/vkusovshina"
+
+engine = AsyncEngine(create_engine(DATABASE_URL, echo=True, future=True))
 
 
 async def init_db():
