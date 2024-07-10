@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
-from api.models import Shelf, ShelfIn, ShelfOut
+from models import Shelf, ShelfIn, ShelfOut
 import db_manager
 
 

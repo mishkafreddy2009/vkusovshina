@@ -12,6 +12,7 @@ from pydantic import BaseModel, ValidationError, model_validator, PositiveInt
 class Shelf(BaseModel):
     shelf_type: str
     volume: PositiveInt
+    is_full: bool
     # products: list[Product]
 
     # @model_validator(mode="before")
@@ -29,6 +30,7 @@ class Shelf(BaseModel):
 class ShelfIn(BaseModel):
     shelf_type: str
     volume: PositiveInt
+    is_full: bool | None = False
 
 
 class ShelfOut(ShelfIn):
@@ -38,3 +40,4 @@ class ShelfOut(ShelfIn):
 class ShelfUpdate(ShelfIn):
     shelf_type: str | None = None
     volume: PositiveInt | None = None
+    is_full: bool | None = None
