@@ -1,45 +1,36 @@
-from fastapi import Depends, FastAPI
-from sqlmodel import Session, select
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.core.db import get_session
-from app.models.storages import Storage, StorageCreate
-
-# from app.api import router
-# from app.core.config import settings
-
-app = FastAPI()
-
-
-@app.get("/ping")
-async def pong():
-    return {"ping": "pong"}
+from app.core.db import get_session, reset_db
+from app.core.db import init_db
+from app.models.models import Storage
+from app.models.models import StorageCreate
+from app.models.models import Product
+from app.models.models import ProductCreate
+from app.api import router
 
 
-@app.get("/storages", response_model=list[Storage])
-async def get_storages(session: AsyncSession = Depends(get_session)):
-    result = await session.exec(select(Storage))
-    storages = result.fetchall()
-    return [
-        Storage(
-            name=storage.name,
-            address=storage.address,
-            phone_number=storage.phone_number,
-            id=storage.id,
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await reset_db()
+    await init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:8080"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"]
         )
-        for storage in storages
-    ]
 
-
-@app.post("/storages")
-async def add_storage(
-    storage: StorageCreate,
-    session: AsyncSession = Depends(get_session)
-):
-    db_storage = Storage(
-        name=storage.name, address=storage.address, phone_number=storage.phone_number
-    )
-    session.add(db_storage)
-    await session.commit()
-    await session.refresh(db_storage)
-    return storage
+app.include_router(router)
