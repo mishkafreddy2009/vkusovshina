@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./storages
+    ports:
+      - 5000:5000
+    volumes:
+      - ./storages:/app
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 5000
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=vkusovshina
+    depends_on:
+      - db
+  frontend:
+    build: ./frontend
+    volumes:
+      - './frontend:/app'
+      - '/app/node_modules'
+    ports:
+      - 8080:8080
+  db:
+    image: postgres:12
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vkusovshina
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
