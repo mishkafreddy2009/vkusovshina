@@ -1,4 +1,4 @@
-# v 0.04
+# v 0.05
 from pydantic import BaseModel, Field, PositiveInt, constr
 from datetime import datetime
 import time
@@ -55,6 +55,9 @@ class Busket(BaseModel):
                                 cust_id INT REFERENCES customers(customer_id),
                                 cost FLOAT NOT NULL);"""
                 )
+
+                #pr_to_busket -> busket
+
                 #заполнение корзины
                 cursor.execute("""INSERT INTO busket (
                                 pr_category_id,
