@@ -26,30 +26,36 @@ try:
         print(f"Server version: {cursor.fetchone()}")
         
     #create a new table
-    # with connection.cursor() as cursor:
-    #     cursor.execute(
-    #         """CREATE TABLE product_db(
-    #             product_id serial PRIMARY KEY,
-    #             pr_category_id INT,
-    #             quantity INT,
-    #             price FLOAT);"""
-    #     )
-        # cursor.execute("""CREATE TABLE customers (
-        #         customer_id SERIAL PRIMARY KEY,
-        #         first_name VARCHAR(50) NOT NULL,
-        #         last_name VARCHAR(50) NOT NULL,
-        #         phone_number VARCHAR(15) NOT NULL);"""
-        # )
-        # cursor.execute("""CREATE TABLE purchases (
-        #         purch_id SERIAL PRIMARY KEY,
-        #         cust_id INT REFERENCES customers(customer_id),
-        #         purch_time TIMESTAMP NOT NULL,
-        #         total_cost FLOAT NOT NULL,
-        #         pr_list INT[]);"""
-        # )
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS product_db(
+                product_id serial PRIMARY KEY, 
+                pr_category_id INT, 
+                quantity INT, 
+                price FLOAT);""" #другие
+        )
+        cursor.execute("""CREATE TABLE IF NOT EXISTS customers ( 
+                customer_id SERIAL PRIMARY KEY,   
+                first_name VARCHAR(50) NOT NULL,
+                last_name VARCHAR(50) NOT NULL,
+                phone_number VARCHAR(15) NOT NULL);"""
+        )
+        cursor.execute("""CREATE TABLE IF NOT EXISTS purchases (
+                purch_id SERIAL PRIMARY KEY,
+                cust_id INT REFERENCES customers(customer_id),
+                purch_time TIMESTAMP NOT NULL,
+                total_cost FLOAT NOT NULL,
+                pr_list INT[]);"""
+        )
+        cursor.execute("""CREATE TABLE IF NOT EXISTS busket (
+                pr_id SERIAL PRIMARY KEY,
+                pr_category_id INT,
+                cust_id INT REFERENCES customers(customer_id),
+                cost FLOAT NOT NULL);"""
+        )
         
     #     # connection.commit()
-    #     print("[INFO] Table created successfully")
+        print("[INFO] Table created successfully")
         
     # insert data into a table
     with connection.cursor() as cursor:
@@ -77,7 +83,7 @@ try:
     #delete a table
     # with connection.cursor() as cursor:
     #     cursor.execute(
-    #         """DROP TABLE product_db;"""
+    #         """DROP TABLE busket;"""
     #     )
         
     #     print("[INFO] Table was deleted")
