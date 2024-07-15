@@ -10,3 +10,9 @@ class SSupplyAdd(BaseModel):
 
 class SSupply(SSupplyAdd):
     id: int
+
+
+class SSupplyId(BaseModel):
+    ok: bool = True
+    supply_id: int
+

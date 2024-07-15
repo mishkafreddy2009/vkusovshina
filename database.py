@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from datetime import datetime
+from datetime import date
 
 
 engine = create_async_engine(
@@ -19,7 +19,7 @@ class Supplies(Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     provider_id: Mapped[int]
     store_id: Mapped[int]
-    date: Mapped[datetime]
+    date: Mapped[date]
 
 
 class DeliveredProducts(Model):

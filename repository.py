@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from database import new_session, Supplies
-from schemas import SSupplyAdd
+from schemas import SSupplyAdd, SSupply
 
 
 class SuppliesRepository:
@@ -18,11 +18,12 @@ class SuppliesRepository:
 
 
     @classmethod
-    async def find_all(cls):
+    async def find_all(cls) -> list[SSupply]:
         async with new_session() as session:
             query = select(Supplies)
             result = await session.execute(query)
             supply_models = result.scalars().all()
-            return supply_models
+            supply_schemas = [SSupply.model_validate(supply_model) for supply_model in supply_models]
+            return supply_schemas
 
 
