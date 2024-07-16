@@ -1,16 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi import HTTPException
-from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
-from core.db import get_session, reset_db
+from core.db import reset_db
 from core.db import init_db
-from models.models import Storage
-from models.models import StorageCreate
-from models.models import Product
-from models.models import ProductCreate
 from api import router
 
 
