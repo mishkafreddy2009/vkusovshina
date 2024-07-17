@@ -5,10 +5,10 @@ from fastapi import UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.models.models import Product
-from app.models.models import ProductCreate
-from app.models.models import ProductPublic
-from app.models.models import ProductUpdate
+from app.models.product import Product
+from app.models.product import ProductCreate
+from app.models.product import ProductPublic
+from app.models.product import ProductUpdate
 from app.core.db import get_session
 from app.crud.products import crud_product
 
