@@ -1,13 +1,13 @@
 version: "3.8"
 
 services:
-  backend:
+  storages:
     build: ./storages
     ports:
-      - 5000:5000
+      - 8001:8001
     volumes:
       - ./storages:/app
-    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 5000
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
     environment:
       - DB_HOST=db
       - DB_PORT=5432
