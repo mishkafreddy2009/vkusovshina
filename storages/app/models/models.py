@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlmodel import Relationship, SQLModel, Field
 
 
@@ -40,6 +41,7 @@ class ProductBase(SQLModel):
 class Product(ProductBase, table=True):
     id: int = Field(default=None, nullable=False, primary_key=True)
     storage_id: int = Field(default=None, foreign_key="storage.id")
+    image_id: int = Field(default=None, foreign_key="image.id")
     storage: Storage | None = Relationship(back_populates="products")
 
 
@@ -52,3 +54,11 @@ class ProductPublic(ProductBase):
 
 class ProductUpdate(ProductBase):
     title: str | None = Field(default=None, max_length=255) # type: ignore
+
+
+class ImageBase(SQLModel):
+    path: str
+    creation_date: datetime = datetime.now()
+
+class Image(ImageBase, table=True):
+    id: int = Field(default=None, nullable=False, primary_key=True)

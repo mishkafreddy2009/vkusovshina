@@ -1,8 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.models.models import Product, ProductCreate, ProductPublic, ProductUpdate
+from app.models.models import Product
+from app.models.models import ProductCreate
+from app.models.models import ProductPublic
+from app.models.models import ProductUpdate
 from app.core.db import get_session
 from app.crud.products import crud_product
 
@@ -16,7 +22,7 @@ async def read_products(offset: int = 0, limit: int = 100, session: AsyncSession
 
 
 @router.post("/", response_model=ProductPublic)
-async def create_product(product_in: ProductCreate, session: AsyncSession = Depends(get_session)):
+async def create_product(file: UploadFile, product_in: ProductCreate, session: AsyncSession = Depends(get_session)):
     product = await crud_product.get(session, title=product_in.title)
     if product:
         raise HTTPException(
@@ -26,6 +32,7 @@ async def create_product(product_in: ProductCreate, session: AsyncSession = Depe
     obj_in = ProductCreate(
             **product_in.model_dump()
             )
+    print(file.filename)
     return await crud_product.create(session, obj_in)
 
 

@@ -7,13 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.api import router
 from app.core.db import get_session, reset_db
 from app.core.db import init_db
 from app.models.models import Storage
 from app.models.models import StorageCreate
 from app.models.models import Product
 from app.models.models import ProductCreate
-from app.api import router
 
 
 @asynccontextmanager
