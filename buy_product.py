@@ -1,10 +1,10 @@
-# v 0.05
+# v 0.06
 from pydantic import BaseModel, Field, PositiveInt, constr
 from datetime import datetime
 import time
-from typing import List
+from typing import List, Optional
 import psycopg2
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 # fastapi
 app = FastAPI()
@@ -58,7 +58,7 @@ class Busket(BaseModel):
 
                 #pr_to_busket -> busket
 
-                #заполнение корзины
+                #заполнение корзины (добавить удаление ведь удаление просходит после совершения покупки)
                 cursor.execute("""INSERT INTO busket (
                                 pr_category_id,
                                 cust_id, 
@@ -113,41 +113,86 @@ class Busket(BaseModel):
             print(f"Покупка совершена успешно. ID покупки: {purch_id}, Время: {purchase_time}, Стоимость: {total_cost}")
             time.sleep(1)  # чисто визуал
 
+
+current_customer: Optional[Customer] = None
+busket: Optional[Busket] = None
+
 # Создание покупателя
-with connection.cursor() as cursor:
-    cursor.execute(
-        "INSERT INTO customers (first_name, last_name, phone_number) VALUES (%s, %s, %s) RETURNING customer_id",
-        ("Ivan", "Ivanov", "1234567890")
-    )
-    customer_id = cursor.fetchone()[0]
+def create_customer(first_name: str, last_name: str, phone_number: str):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO customers (first_name, last_name, phone_number) VALUES (%s, %s, %s) RETURNING customer_id",
+            (first_name, last_name, phone_number)
+        )
+        customer_id = cursor.fetchone()[0]
+        return customer_id
 
-customer = Customer(
-    customer_id=customer_id,
-    first_name="Ivan",
-    last_name="Ivanov",
-    phone_number="1234567890"
-)
-
-# Создание корзины
-busket = Busket(
-    cust_id=customer.customer_id,
-    cust_fname=customer.first_name,
-    cust_lname=customer.last_name
-)
+#поиск
+def find_customer(first_name: str, last_name: str):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT customer_id, phone_number FROM customers WHERE first_name = %s AND last_name = %s", (first_name, last_name)
+        )
+        customer_data = cursor.fetchone()
+        if customer_data:
+            return {"customer_id": customer_data[0], "phone_number": customer_data[1]}
+        else:
+            return None
 
 #fastapi
+@app.post("/register")
+def register_customer(first_name: str, last_name: str, phone_number: str):
+    customer_data = find_customer(first_name, last_name)
+
+    if customer_data:
+        raise HTTPException(status_code=400, detail="Пользователь уже существует")
+
+    customer_id = create_customer(first_name, last_name, phone_number)
+    return {"customer_id": customer_id, "message": "Пользователь успешно зарегистрирован"}
+
+@app.post("/login")
+def login_customer(first_name: str, last_name: str):
+
+    global current_customer, busket
+
+    customer_data = find_customer(first_name, last_name)
+
+    if not customer_data:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    current_customer = Customer(customer_id=customer_data["customer_id"], first_name=first_name, last_name=last_name, phone_number=customer_data["phone_number"])
+    
+    # Создание новой корзины для авторизованного пользователя
+    busket = Busket(
+        cust_id=current_customer.customer_id,
+        cust_fname=current_customer.first_name,
+        cust_lname=current_customer.last_name
+    )
+
+
+    return {"customer_id": customer_data["customer_id"], "phone_number": customer_data["phone_number"], "message": "Пользователь успешно авторизован"}
+
+
 @app.get("/add_to_busket/{pr_id}/{quantity}")
-def read_pr_id(pr_id: int, quantity: int):
+def read_add_to_busket(pr_id: int, quantity: int):
+    global busket
+    if busket is None:
+        raise HTTPException(status_code=401, detail="Пользователь не авторизован")
+    
     for i in range(quantity):
         busket.add_to_busket(pr_id)
             
-    return {"сюдааа"}
+    return {"message": f"{quantity} единиц товара {pr_id} добавлено в корзину."}
 
 
 @app.get("/complete_purchase")
-def read_pr_id():
+def read_complete_purchase():
+    global busket
+    if busket is None:
+        raise HTTPException(status_code=401, detail="Пользователь не авторизован")
+    
     busket.complete_purchase()
-    return {"малаца"}
+    return {"message": "Покупка завершена"}
 
     
 @app.get("/status_storage")
@@ -168,6 +213,13 @@ def status_stotage():
         for purchase in purchases:
             print(f"ID: {purchase[0]}, id покупателя: {purchase[1]}, Время покупки: {purchase[2]}, Стоимость: {purchase[3]}, список продуктов: {purchase[4]}")
 
+        cursor.execute("SELECT customer_id, first_name, last_name, phone_number FROM customers")
+        customers = sorted(cursor.fetchall())
+        print()
+
+        for customer in customers:
+            print(f"ID: {customer[0]}, имя: {customer[1]}, фамилия: {customer[2]}, телефон: {customer[3]}")    
+
 
 #done:
 #Поиск продукта, удаление продукта, классы корзины, покупателя, продукта
@@ -175,8 +227,8 @@ def status_stotage():
 #Добавлен класс Purchase, и имитация покупки с отправкой инфы
 #Добавленны базы данных
 #Добавлен фаст апи
+#добавлена возможность зарегать пользователя и покупать от его id
 #to do:
-#Связать функции с SQL, проверить работу на SQL
-#Проверить корректность pydantic (input_json = ... , class.parse_raw(input_json) иль чо там)
-#Тесты + доработка
-#сделать интерфейс покупателя
+#Тесты + доработка, прописать исключения, пофиксить баги в бд
+#сделать нормальную авторизацию
+#узнать про файловку
