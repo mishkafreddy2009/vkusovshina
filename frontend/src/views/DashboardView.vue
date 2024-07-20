@@ -1,23 +1,26 @@
 <template>
     <div class="dashboard">
-        <BaseStorage />
+        <StorageCreateView />
+        <StoragesList />
     </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import BaseStorage from '@/components/BaseStorage.vue'
+import StoragesList from '@/components/StoragesList.vue'
+import StorageCreateView from '@/views/StorageCreateView.vue'
 
 export default {
   name: 'DashboardView',
   components: {
-      BaseStorage,
+      StoragesList,
+      StorageCreateView,
   }
 }
 </script>
 
 <style scoped>
-main {
-    margin: 2rem 1rem;
+.dashboard {
+    margin: 1rem;
 }
 </style>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, status
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import UploadFile
@@ -22,7 +22,7 @@ async def read_products(offset: int = 0, limit: int = 100, session: AsyncSession
 
 
 @router.post("/", response_model=ProductPublic)
-async def create_product(file: UploadFile, product_in: ProductCreate, session: AsyncSession = Depends(get_session)):
+async def create_product(product_in: ProductCreate, session: AsyncSession = Depends(get_session)):
     product = await crud_product.get(session, title=product_in.title)
     if product:
         raise HTTPException(
@@ -32,8 +32,34 @@ async def create_product(file: UploadFile, product_in: ProductCreate, session: A
     obj_in = ProductCreate(
             **product_in.model_dump()
             )
-    print(file.filename)
     return await crud_product.create(session, obj_in)
+
+
+# @router.post("/uploadfile/{product_id}")
+# async def upload_product_image(product_in: ProductCreate, product_id: int,session: AsyncSession = Depends(get_session), file: UploadFile = File(...)):
+#     FILEPATH = "./static/images"
+#     file_name = file.filename
+#
+#     try:
+#         extension = file_name.split(".")[1]
+#     finally:
+#         if extension not in ["png", "jpg", "jpeg"]:
+#             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+#                                 detail="File extension not allowed")
+#
+#     token_name = "product" + "safsafsaf" + "." + extension
+#     generated_name = FILEPATH + token_name
+#     file_content = await file.read()
+#
+#     with open(generated_name, "wb") as f:
+#         f.write(file_content)
+#
+#     product = await crud_product.get(session, title=product_in.title)
+#     if not product:
+#         raise HTTPException(
+#                 status_code=404,
+#                 detail="this product already exist"
+#                 )
 
 
 @router.put("/{product_id}/", response_model=ProductPublic)

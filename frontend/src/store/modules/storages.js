@@ -13,7 +13,7 @@ const getters = {
 const actions = {
     async createStorage({dispatch}, storage) {
         await axios.post("api/v1/storages", storage);
-        await dispatch("getNotes");
+        await dispatch("getStorages");
     },
     async getStorages({commit}) {
         let {data} = await axios.get("api/v1/storages");

@@ -69,12 +69,6 @@ h1 {
     color: #a2a2a2;
 }
 
-.cart {
-    background-color: #f5f5f5;
-    border-radius: 1rem;
-    padding: 0rem 0.5rem;
-}
-
 .cart__icon {
     width: 48px;
     height: 48px;

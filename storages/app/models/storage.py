@@ -10,10 +10,10 @@ from sqlmodel import Field
 
 
 class StorageBase(SQLModel):
-    title: str = Field(default="Большой склад №1", max_length=255)
-    description: str | None = Field(default="Самый большой склад.", max_length=255)
-    address: str = Field(default="ул. Ленина д. 23", max_length=255)
-    phone_number: str = Field(default="79823069920", max_length=11)
+    title: str = Field(max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    address: str = Field(max_length=255)
+    phone_number: str = Field(min_length=11, max_length=11)
     capacity: int = 5000
     current_stock: int = 0
     is_full: bool = False

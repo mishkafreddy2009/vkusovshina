@@ -1,5 +1,6 @@
 <template>
     <section class="products">
+        <!-- <li v-for="storage in storages" v-bind:key="storage.id">{{ storage }}</li> -->
         <BaseProduct />
         <BaseProduct />
         <BaseProduct />
@@ -22,13 +23,28 @@
 </template>
 
 <script>
-import BaseProduct from '@/components/BaseProduct.vue'
+import axios from 'axios';
+import BaseProduct from '@/components/BaseProduct.vue';
 
 export default {
-  name: 'ProductsList',
-  components: {
-    BaseProduct,
-  }
+    name: "ProductsList",
+    components: {
+        BaseProduct
+    },
+    data() {
+        return {
+            storages: []
+        }
+    },
+    mounted() {
+        axios.get("api/v1/storages/")
+            .then(response => {
+                this.storages = response.data;
+            })
+            .catch(error => {
+                console.error(error);
+            })
+    },
 }
 </script>
 

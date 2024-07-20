@@ -11,25 +11,27 @@ from sqlmodel import Field
 
 
 class ProductBase(SQLModel):
-    title: str = Field(max_length=255)
+    title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
     quantity: int = 0
 
 
-class Product(ProductBase, table=True):
-    id: int = Field(default=None, nullable=False, primary_key=True)
-    storage_id: int = Field(default=None, foreign_key="storage.id")
-    # storage: Storage = Relationship(back_populates="products")
-
-
 class ProductCreate(ProductBase):
-    pass
-
-
-class ProductPublic(ProductBase):
-    id: int
-    storage_id: int
+    title: str = Field(min_length=1, max_length=255)
 
 
 class ProductUpdate(ProductBase):
     title: str | None = Field(default=None, max_length=255) # type: ignore
+
+
+class Product(ProductBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str = Field(max_length=255)
+    storage_id: int = Field(default=None, foreign_key="storage.id")
+
+
+class ProductPublic(ProductBase):
+    id: int
+    # storage_id: int
+
+

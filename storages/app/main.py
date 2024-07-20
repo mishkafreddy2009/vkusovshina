@@ -7,6 +7,10 @@ from app.api import router
 from app.core.db import reset_db
 from app.core.db import init_db
 
+origins = [
+        "http://localhost:8080",
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -16,13 +20,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
 app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost:8080"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"]
-        )
-
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Range", "Range"]
+)
 app.include_router(router)
