@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy import select, update, delete
-from database import new_session, ProductTable, BasketTable, PurchaseTable
-from schemas import SProductAdd, SProduct, SBasketAdd, SBasket, SPurchase
-
+from database import new_session, ProductTable, BasketTable, PurchaseTable, User
+from models import user
+from schemas import SProductAdd, SProduct, SBasketAdd, SBasket, SPurchase, UserRead
 
 
 class ProductRepository:
@@ -37,30 +37,30 @@ class ProductRepository:
 
 class BasketRepository:
     @classmethod
-    async def add_one(cls, data: SBasketAdd) -> int:
+    async def add_one(cls, data: SBasketAdd, customer: user) -> int:
         async with new_session() as session:
-            async with session.begin():
-                product_query = select(ProductTable).where(ProductTable.category == data.pr_category)
-                product_result = await session.execute(product_query)
-                product = product_result.scalar_one_or_none()
+            #async with session.begin():
+            product_query = select(ProductTable).where(ProductTable.category == data.pr_category)
+            product_result = await session.execute(product_query)
+            product = product_result.scalar_one_or_none()
 
-                if not product or product.quantity < data.quantity:
-                    raise ValueError("Insufficient product quantity or product not found")
+            if not product or product.quantity < data.quantity:
+                raise ValueError("Insufficient product quantity or product not found")
 
-                product.quantity -= data.quantity
-                cost = product.price * data.quantity
+            product.quantity -= data.quantity
+            cost = product.price * data.quantity
 
-                basket_dict = {
-                    "pr_category": data.pr_category,
-                    "cust_id": data.cust_id,
-                    "pr_price": cost,
-                    "quantity": data.quantity,
-                }
-                basket = BasketTable(**basket_dict)
-                session.add(basket)
-                await session.flush()
-                await session.commit()
-                return basket.id
+            basket_dict = {
+                "pr_category": data.pr_category,
+                "cust_id": customer.id,
+                "pr_price": cost,
+                "quantity": data.quantity,
+            }
+            basket = BasketTable(**basket_dict)
+            session.add(basket)
+            await session.flush()
+            await session.commit()
+            return basket.id
 
     @classmethod
     async def find_all(cls) -> list[SBasket]:
@@ -129,3 +129,15 @@ class PurchaseRepository:
                 ) for purchase_model in purchase_models
             ]
             return purchase_schemas
+
+
+#добавляем пользователя
+class UserRepository:
+    @classmethod
+    async def find_all(cls):
+        async with new_session() as session:
+            query = select(User)
+            result = await session.execute(query)
+            user_models = result.scalars().all()
+            user_schemas = [UserRead.model_validate(basket_model.__dict__) for basket_model in user_models]
+            return user_schemas

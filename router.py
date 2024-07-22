@@ -1,8 +1,13 @@
-from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException
-from repository import ProductRepository, BasketRepository, PurchaseRepository
+from typing import Annotated, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, FastAPI
+from fastapi_users import FastAPIUsers
+
+from auth.auth import auth_backend
+from auth.manager import get_user_manager
+from database import User
+from repository import ProductRepository, BasketRepository, PurchaseRepository, UserRepository
 from schemas import SProductAdd, SProductId, SProduct, SBasketAdd, SBasketId, SBasket, \
-    SPurchase, SPurchaseId
+    SPurchase, SPurchaseId, UserRead, UserCreate
 
 # Новый роутер для продуктов
 product_router = APIRouter(
@@ -10,13 +15,23 @@ product_router = APIRouter(
     tags=["Продукты"],
 )
 
+#для юзера
+fastapi_users = FastAPIUsers[User, int](
+    get_user_manager,
+    [auth_backend],
+)
+
+current_user = fastapi_users.current_user()
+#
 
 @product_router.post("")
 async def add_product(
         product: Annotated[SProductAdd, Depends()],
-) -> SProductId:
+) -> dict[str, str | int]:
     product_id = await ProductRepository.add_one(product)
-    return {"ok": True, "product_id": product_id}
+    pr_cat = product.category
+    count_pr = product.quantity
+    return {"Добавлен товар": pr_cat, "В количестве": count_pr, "product_id": product_id}
 
 
 @product_router.get("")
@@ -35,9 +50,12 @@ basket_router = APIRouter(
 @basket_router.post("")
 async def add_to_basket(
         basket: Annotated[SBasketAdd, Depends()],
-) -> SBasketId:
-    basket_id = await BasketRepository.add_one(basket)
-    return {"ok": True, "basket_id": basket_id}
+        user: User = Depends(current_user),
+) -> dict[str, int | Any]:
+    basket_id = await BasketRepository.add_one(basket, user)
+    pr_cat = basket.pr_category
+    count_pr = basket.quantity
+    return {"Добавлен товар": pr_cat, "В количестве": count_pr, "basket_id": basket_id, "you": user.username}
 
 
 @basket_router.get("")
@@ -53,12 +71,18 @@ purchase_router = APIRouter(
 
 
 @purchase_router.post("")
-async def complete_purchase():
+async def complete_purchase(user: User = Depends(current_user)):
     purchase_id = await PurchaseRepository.complete_purchase()
-    return {"purchase_id": purchase_id}
+    return {"Покупка совершена purchase_id": purchase_id, "you": user.username}
 
 
 @purchase_router.get("/123")
 async def get_purchases():
     purchases = await PurchaseRepository.find_all()
     return {"purchases": purchases}
+
+
+@purchase_router.get("/12345")
+async def get_users():
+    users = await UserRepository.find_all()
+    return {"purchases": users}
