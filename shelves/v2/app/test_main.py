@@ -1,7 +1,6 @@
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from main import app
-# import pytest
-# from httpx import AsyncClient
 
 
 client = TestClient(app)
@@ -14,24 +13,36 @@ def test_read_homepage():
 
 
 def test_create_shelf():
+    # client.post(
+    #     "/api/v1/storages",
+    #     json = {
+    #         "name": "Storage 1",
+    #         "description": "Product storage",
+    #         "address": "32 Edinburgh St.",
+    #         "phone_number": "123456789",
+    #         "capacity": 100,
+    #         "current_stock": 0,
+    #         "is_full": False
+    #     }
+    # )
     response = client.post(
         "/api/v1/shelves/",
         json = {
             "name": "Candies",
-            "description": "Shelf of 10 products specified for candies",
+            "description": "Shelf specified for candies",
             "capacity": 10,
             "current_stock": 0,
-            "is_full": False
+            "is_full": False,
         }
     )
     assert response.status_code == 200
     assert response.json() == {
         "name": "Candies",
-        "description": "Shelf of 10 products specified for candies",
+        "description": "Shelf specified for candies",
         "capacity": 10,
         "current_stock": 0,
         "is_full": False,
-        "id": 1
+        "id": 1,
     }
 
 
@@ -81,8 +92,8 @@ def test_create_shelf():
 # def test_update_shelf():
 #     client.post("/api/v1/shelves/",
 #         json = {
-#             "name": "Candies",
-#             "description": "Shelf of 10 products specified for candies",
+#             "name": "Candies2",
+#             "description": "Shelf of candies",
 #             "capacity": 10,
 #             "current_stock": 0,
 #             "is_full": False
@@ -92,7 +103,7 @@ def test_create_shelf():
 #         "/api/v1/shelves/1",
 #         json = {
 #             "name": "Bread",
-#             "description": "Shelf of 20 products specified for bread",
+#             "description": "Shelf of bread",
 #             "capacity": 20,
 #             "current_stock": 0,
 #             "is_full": False,
@@ -101,7 +112,7 @@ def test_create_shelf():
 #     assert response.status_code == 200
 #     assert response.json() == {
 #         "name": "Bread",
-#         "description": "Shelf of 20 products specified for bread",
+#         "description": "Shelf of bread",
 #         "capacity": 20,
 #         "current_stock": 0,
 #         "is_full": False,

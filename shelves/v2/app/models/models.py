@@ -30,10 +30,10 @@ class Storage(StorageBase, table=True):
             back_populates="storage", 
             sa_relationship_kwargs={"lazy": "selectin"}
             )
-    shelves: list["Shelf"] = Relationship(
-            back_populates="storage",
-            sa_relationship_kwargs={"lazy": "selectin"}
-            )
+    # shelves: list["Shelf"] = Relationship(
+    #         back_populates="storage",
+    #         sa_relationship_kwargs={"lazy": "selectin"}
+    #         )
 
 
 class ShelfBase(SQLModel):
@@ -42,6 +42,7 @@ class ShelfBase(SQLModel):
     capacity: int = 10
     current_stock: int = 0
     is_full: bool = False
+    # storage_id: Optional[int]
 
 
 class ShelfCreate(ShelfBase):
@@ -50,7 +51,7 @@ class ShelfCreate(ShelfBase):
 
 class ShelfPublic(ShelfBase):
     id: int
-    storage_id: int
+    # storage_id: Optional[int]
 
 
 class ShelfUpdate(ShelfBase):
@@ -59,8 +60,8 @@ class ShelfUpdate(ShelfBase):
 
 class Shelf(ShelfBase, table=True):
     id: int = Field(default=None, nullable=False, primary_key=True)
-    storage_id: int = Field(default=1, foreign_key="storage.id")
-    storage: Optional[Storage] = Relationship(back_populates="shelves")
+    # storage_id: int = Field(default=1, foreign_key="storage.id")
+    # storage: Optional[Storage] = Relationship(back_populates="shelves")
     
 
 class ProductBase(SQLModel):
