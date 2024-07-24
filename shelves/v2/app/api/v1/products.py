@@ -30,20 +30,20 @@ async def create_product(product_in: ProductCreate, session: AsyncSession = Depe
 
 
 @router.put("/{product_id}/", response_model=ProductPublic)
-async def update_product(storage_id: int, storage_in: ProductUpdate, session: AsyncSession = Depends(get_session)):
-    storage = await crud_product.get(session, id=storage_id)
-    if not storage:
+async def update_product(product_id: int, product_in: ProductUpdate, session: AsyncSession = Depends(get_session)):
+    product = await crud_product.get(session, id=product_id)
+    if not product:
         raise HTTPException(
                 status_code=404,
-                detail="this storage doesnt exist"
+                detail="the product you are looking for does not exist"
                 )
     try:
-        storage = await crud_product.update(session, db_obj=storage, obj_in={
-            **storage_in.model_dump(exclude_none=True),
+        product = await crud_product.update(session, db_obj=product, obj_in={
+            **product_in.model_dump(exclude_none=True),
             })
     except IntegrityError:
         raise HTTPException(
                 status_code=409,
-                detail="this storage already exist"
+                detail="this product already exist"
                 )
-    return storage
+    return product

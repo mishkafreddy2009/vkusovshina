@@ -1,4 +1,5 @@
 from sqlmodel import Relationship, SQLModel, Field
+from typing import Optional
 
 
 class StorageBase(SQLModel):
@@ -6,7 +7,7 @@ class StorageBase(SQLModel):
     description: str = Field(max_length=255)
     address: str = Field(max_length=255)
     phone_number: str = Field(max_length=11)
-    capacity: int
+    capacity: int = 100
     current_stock: int = 0
     is_full: bool = False
 
@@ -20,7 +21,7 @@ class StoragePublic(StorageBase):
 
 
 class StorageUpdate(StorageBase):
-    name: str | None = Field(default=None, max_length=255) # type: ignore
+    name: Optional[str] = Field(default=None, max_length=255) # type: ignore
 
 
 class Storage(StorageBase, table=True):
@@ -29,18 +30,49 @@ class Storage(StorageBase, table=True):
             back_populates="storage", 
             sa_relationship_kwargs={"lazy": "selectin"}
             )
+    shelves: list["Shelf"] = Relationship(
+            back_populates="storage",
+            sa_relationship_kwargs={"lazy": "selectin"}
+            )
 
+
+class ShelfBase(SQLModel):
+    name: str = Field(unique=True, max_length=255)
+    description: Optional[str] = Field(max_length=255)
+    capacity: int = 10
+    current_stock: int = 0
+    is_full: bool = False
+
+
+class ShelfCreate(ShelfBase):
+    pass
+
+
+class ShelfPublic(ShelfBase):
+    id: int
+    storage_id: int
+
+
+class ShelfUpdate(ShelfBase):
+    name: Optional[str] = Field(default=None, max_length=255) # type: ignore
+
+
+class Shelf(ShelfBase, table=True):
+    id: int = Field(default=None, nullable=False, primary_key=True)
+    storage_id: int = Field(default=1, foreign_key="storage.id")
+    storage: Optional[Storage] = Relationship(back_populates="shelves")
+    
 
 class ProductBase(SQLModel):
     title: str = Field(max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=255)
     quantity: int = 0
 
 
 class Product(ProductBase, table=True):
     id: int = Field(default=None, nullable=False, primary_key=True)
-    storage_id: int | None = Field(default=None, foreign_key="storage.id")
-    storage: Storage | None = Relationship(back_populates="products")
+    storage_id: int = Field(default=1, foreign_key="storage.id")
+    storage: Optional[Storage] = Relationship(back_populates="products")
 
 
 class ProductCreate(ProductBase):
@@ -54,36 +86,3 @@ class ProductPublic(ProductBase):
 
 class ProductUpdate(ProductBase):
     title: str | None = Field(default=None, max_length=255) # type: ignore
-
-    
-class ShelfBase(SQLModel):
-    name: str = Field(unique=True, max_length=255)
-    description: str = Field(max_length=255)
-    capacity: int
-    current_stock: int = 0
-    is_full: bool = False
-
-
-class ShelfCreate(ShelfBase):
-    pass
-
-
-class ShelfPublic(ShelfBase):
-    id: int
-
-
-class ShelfUpdate(ShelfBase):
-    name: str | None = Field(default=None, max_length=255) # type: ignore
-
-
-class Shelf(ShelfBase, table=True):
-    id: int = Field(default=None, nullable=False, primary_key=True)
-    # storage: "Storage" = Relationship(
-    #         back_populates="shelf",
-    #         sa_relationship_kwargs={"lazy": "selectin"}
-    #         )                                             ???
-    # products: list["Product"] = Relationship(
-    #         back_populates="shelf", 
-    #         sa_relationship_kwargs={"lazy": "selectin"}
-    #         )
-    
