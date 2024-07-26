@@ -3,6 +3,7 @@ import time
 from httpx import AsyncClient
 from sqlalchemy import insert, select
 
+from src.auth.auth import auth_backend
 from src.models import role
 from src.router import current_user
 from tests.conftest import async_session_maker, client
@@ -31,8 +32,9 @@ async def test_purchases_123(ac: AsyncClient):
 
 
 async def test_add_product(ac: AsyncClient):
+
     response = await ac.post("/products", json={
-        "category": "qwe",
+        "category": "zzz",
         "quantity": 10,
         "price": 1
     })
@@ -50,70 +52,59 @@ async def test_add_role():
 
 
 async def test_register(ac: AsyncClient):
-    async with async_session_maker() as session:
-        response = await ac.post("/auth/register", json={
-          "email": "string",
-          "password": "string",
-          "is_active": True,
-          "is_superuser": False,
-          "is_verified": False,
-          "username": "string",
-          "role_id": 0
-        })
+    response = await ac.post("/auth/register", json={
+      "email": "Vasa",
+      "password": "Vasa",
+      "is_active": True,
+      "is_superuser": False,
+      "is_verified": False,
+      "username": "Vasa123",
+      "role_id": 1
+    })
+    ac.cookies = response.cookies
+    assert response.status_code == 201
 
-    assert response.status_code == 204
 
 async def test_login(ac: AsyncClient):
     response = await ac.post("/auth/jwt/login", data={
         "grant_type": "",
-        "username": "zxc",
-        "password": "zxc",
+        "username": "Vasa",
+        "password": "Vasa",
         "scope": "",
         "client_id": "",
         "client_secret": ""
     }, headers={
         "Content-Type": "application/x-www-form-urlencoded"
     })
+
+    ac.cookies = response.cookies
     assert response.status_code == 204
-    return response.cookies
 
 
 
 async def test_add_to_basket(ac: AsyncClient):
-    # Аутентификация и получение токена
-    auth_response = await ac.post("/auth/jwt/login", data={
-        "grant_type": "",
-        "username": "zxc",
-        "password": "zxc",
-        "scope": "",
-        "client_id": "",
-        "client_secret": ""
+    response1 = await ac.post("/auth/jwt/login", data={
+        "grant_type": None,
+        "username": "Vasa",
+        "password": "Vasa",
+        "scope": None,
+        "client_id": None,
+        "client_secret": None
     }, headers={
         "Content-Type": "application/x-www-form-urlencoded"
-    })
-    # Вывод для отладки
-    print("#################################Auth response status:", auth_response.status_code)
-    #print("#################################Auth response text:", auth_response.json())
-    print("#################################Auth response headers:", auth_response.cookies)
-    print("#################################Auth response headers:", auth_response.headers.get("set-cookie"))
-    # Проверка успешности аутентификации
-    assert auth_response.status_code == 204  # или соответствующий код успешной аутентификации
-
-    # Получение токена из ответа
-    #auth_data = auth_response.json()
-    # token = auth_data.get("access_token")
-    # assert token is not None, "Access token not found in the response"
-
-    # Использование токена для запроса к /baskets
-    response = await ac.post("/baskets", json={
+    }) #json надо сделать
+    assert response1.status_code == 204
+    gg = auth_backend.get_strategy
+    print("?????????????????????????????/", gg)
+    response2 = await ac.post("/baskets", json={
         "category": "qwe",
         "quantity": 5
     })
-    print("#################################Auth response headers:", response.headers)
-    assert response.status_code == 200
+    print("#################################Auth response headers:", response2.headers)
+    assert response2.status_code == 200
 
 
 async def test_comlete_purchase(ac: AsyncClient):
     response = await ac.post("/purchases")
-    time.sleep(10)
+
     assert response.status_code == 200

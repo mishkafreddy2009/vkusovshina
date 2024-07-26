@@ -9,12 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngin
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from src.database import get_async_session
+from database import get_async_session
 #from database import get_async_session
-from src.models import metadata
-from src.config import (DB_HOST_TEST, DB_NAME_TEST, DB_PASS_TEST, DB_PORT_TEST,
+from models import metadata
+from config import (DB_HOST_TEST, DB_NAME_TEST, DB_PASS_TEST, DB_PORT_TEST,
                         DB_USER_TEST)
-from src.main import app
+from main import app
 
 # DATABASE
 DATABASE_URL_TEST = f"postgresql+asyncpg://{DB_USER_TEST}:{DB_PASS_TEST}@{DB_HOST_TEST}:{DB_PORT_TEST}/{DB_NAME_TEST}"
@@ -45,6 +45,7 @@ async def prepare_database():
     yield
     async with engine_test.begin() as conn:
         await conn.run_sync(metadata.drop_all)
+        print("########################################авсе удалилось брат")
 
 
 # SETUP
@@ -60,5 +61,6 @@ client = TestClient(app)
 
 @pytest.fixture(scope="session")
 async def ac() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(app=app, base_url="http://test", auth=None) as ac: #cookies
+        #ac.cookies = None
         yield ac
